@@ -70,4 +70,4 @@ class MyClient(discord.Client):
             await asyncio.sleep(15)
         
 client = MyClient()
-client.run("NzEzMTQ4NjIyNjk4NDQ2ODk4.Xsb5nA.MhHISQjCohhmRpF8komnccA0grc")
+client.run("token goes here")
