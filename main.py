@@ -40,7 +40,7 @@ class MyClient(discord.Client):
 
     async def announce_torrents(self):
         await self.wait_until_ready()
-        announce_channel = self.get_channel(713468778322853999)
+        announce_channel = self.get_channel(713468778322853999) # this is the channel I used for testing, replace this with the channel you would like to use for announces
         while not self.is_closed():
             self.feed = feedparser.parse("https://aither.cc/rss/48.e99367ccad6938825c2e315feab20fc8")
             log = []
