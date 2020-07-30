@@ -5,6 +5,9 @@ try:
     import asyncio
     from hashlib import md5
     from os import stat, listdir
+    from bs4 import BeautifulSoup
+    import re
+    
 except ModuleNotFoundError:
     print("Missing a module. Please check discord.py is installed.")
     from time import sleep
@@ -15,14 +18,14 @@ def get_embed(data):
     embeds = []
     for each in data:
         title = each["title"]
-        summary = each["summary"]
-        author = each["author"]
-        link = each["comments"]
+        summary = each["category"]
+        link = each["link"]
+        author = each["authors"][0]["name"]
         time = each["published"].replace("+0000", "UTC")
 
         embed = discord.Embed(title="New Torrent", colour=0x21ff00)
         embed.add_field(name="Title", value=title, inline=False)
-        embed.add_field(name="Summary", value=summary, inline=False)
+        embed.add_field(name="Category", value=summary, inline=False)
         embed.add_field(name="Link", value=link, inline=False)
         embed.add_field(name="Author", value=author, inline=False)
         embed.add_field(name="Published", value=time, inline=False)
@@ -34,14 +37,14 @@ def get_embed_modified(data):
     embeds = []
     for each in data:
         title = each["title"]
-        summary = each["summary"]
-        author = each["author"]
-        link = each["comments"]
+        summary = each["category"]
+        link = each["link"]
+        author = each["authors"][0]["name"]
         time = each["published"].replace("+0000", "UTC")
 
         embed = discord.Embed(title="Torrent Updated", colour=0x9400D3)
         embed.add_field(name="Title", value=title, inline=False)
-        embed.add_field(name="Summary", value=summary, inline=False)
+        embed.add_field(name="Category", value=summary, inline=False)
         embed.add_field(name="Link", value=link, inline=False)
         embed.add_field(name="Author", value=author, inline=False)
         embed.add_field(name="Published", value=time, inline=False)
@@ -49,10 +52,10 @@ def get_embed_modified(data):
         embeds.append(embed)
     return embeds
 
-# returns an md5 hash made from the uploader and publish time of a torrent. this is used to check whether it really is a new torrent or an edit for a previous one.
+# returns an md5 hash made from the uploader and publish time of a torrent. this is used to check whether it really is a new torrent or an edit of a previous one.
 def get_identifier(entry):
-    time = entry["published"]
-    author = entry["author"]
+    author = entry["authors"][0]["name"]
+    time = entry["published"].replace("+0000", "UTC")
     combined = str(time) + str(author)
     identifier = md5(combined.encode())
     return identifier.hexdigest()
@@ -68,7 +71,7 @@ class MyClient(discord.Client):
 
     async def announce_torrents(self):
         await self.wait_until_ready()
-        announce_channel = self.get_channel(715229124230250527) # this is the channel I used for testing, replace this with the channel ID you would like to use for announces
+        announce_channel = self.get_channel(715616570600063057) # this is the channel I used for testing, replace this with the channel ID you would like to use for announces
         while not self.is_closed():
             self.feed = feedparser.parse("https://aither.cc/rss/56.e99367ccad6938825c2e315feab20fc8")
             log = []
@@ -84,6 +87,9 @@ class MyClient(discord.Client):
                     with open("hashes.txt", "r") as f:
                         for each in f.read().split("\n\n"):
                             hashes.append(each)
+                    
+                    new = [x for x in self.feed["entries"] if str(x) not in log and str(get_identifier(x)) not in hashes]
+                    modified = [x for x in self.feed["entries"] if str(x) not in log and str(get_identifier(x)) in hashes]
             # announce and write to files if no log exists
             else:
                 new = [x for x in self.feed["entries"]]
@@ -98,9 +104,6 @@ class MyClient(discord.Client):
                     for each in hashes:
                         f.write(str(each))
                         f.write("\n\n")
-
-            new = [x for x in self.feed["entries"] if str(x) not in log and str(get_identifier(x)) not in hashes]
-            modified = [x for x in self.feed["entries"] if str(x) not in log and str(get_identifier(x)) in hashes]
 
             if len(new) > 0 or len(modified) > 0:
                 try:
