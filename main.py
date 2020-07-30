@@ -5,8 +5,6 @@ try:
     import asyncio
     from hashlib import md5
     from os import stat, listdir
-    from bs4 import BeautifulSoup
-    import re
     
 except ModuleNotFoundError:
     print("Missing a module. Please check discord.py is installed.")
