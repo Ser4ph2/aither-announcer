@@ -69,7 +69,7 @@ class MyClient(discord.Client):
 
     async def announce_torrents(self):
         await self.wait_until_ready()
-        announce_channel = self.get_channel(715616570600063057) # this is the channel I used for testing, replace this with the channel ID you would like to use for announces
+        announce_channel = self.get_channel(715229124230250527) # this is the channel I used for testing, replace this with the channel ID you would like to use for announces
         while not self.is_closed():
             self.feed = feedparser.parse("https://aither.cc/rss/56.e99367ccad6938825c2e315feab20fc8")
             log = []
@@ -78,7 +78,7 @@ class MyClient(discord.Client):
             # check if torrent log exists
             if "log.txt" in listdir():
                 with open("log.txt", "r") as f:
-                    for each in f.read().split("\n\n"):
+                    for each in f.read().split("\n\nSEPERATOR\n\n"):
                         log.append(each)
                 #check if torrent hashes exist
                 if "hashes.txt" in listdir():
@@ -87,7 +87,7 @@ class MyClient(discord.Client):
                             hashes.append(each)
                     
                     new = [x for x in self.feed["entries"] if str(x) not in log and str(get_identifier(x)) not in hashes]
-                    modified = [x for x in self.feed["entries"] if str(x) not in log and str(get_identifier(x)) in hashes]
+                    #modified = [x for x in self.feed["entries"] if str(x) not in log and str(get_identifier(x)) in hashes]
             # announce and write to files if no log exists
             else:
                 new = [x for x in self.feed["entries"]]
@@ -97,29 +97,29 @@ class MyClient(discord.Client):
                 with open("log.txt", "w") as f:
                     for each in self.feed["entries"]:
                         f.write(str(each))
-                        f.write("\n\n")
+                        f.write("\n\nSEPERATOR\n\n")
                 with open("hashes.txt", "w") as f:
                     for each in hashes:
                         f.write(str(each))
                         f.write("\n\n")
 
-            if len(new) > 0 or len(modified) > 0:
+            if len(new) > 0: #or len(modified) > 0:
                 try:
                     newEmbeds = get_embed(new)
                 except Exception as e:
                     print(str(e))
+                #try:
+                    #modifiedEmbeds = get_embed_modified(modified)
+                #except Exception as e:
+                    #print(str(e))
                 try:
-                    modifiedEmbeds = get_embed_modified(modified)
-                except Exception as e:
-                    print(str(e))
-                try:
-                    embeds = newEmbeds + modifiedEmbeds
+                    embeds = newEmbeds# + modifiedEmbeds
                     for each in embeds:
                         await announce_channel.send(embed=each)
                     with open("log.txt", "w") as f:
                         for each in self.feed["entries"]:
                             f.write(str(each))
-                            f.write("\n\n")
+                            f.write("\n\nSEPERATOR\n\n")
                     with open("hashes.txt", "w") as f:
                         for each in current_hashes:
                             f.write(str(each))
