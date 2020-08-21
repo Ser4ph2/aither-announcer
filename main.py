@@ -12,11 +12,20 @@ except ModuleNotFoundError:
     sleep(2)
     exit(1)
 
+def parseSize(text):
+    regex = r"Size<\/strong>: \d+\.?\d*"
+    matches = re.finditer(regex, text, re.MULTILINE)
+    for matchNum, match in enumerate(matches, start=1):
+        size = match.group()
+    size = size.split(": ")[1] + " GiB"
+    return size
+
 def get_embed(data):
     embeds = []
     for each in data:
         title = each["title"]
         summary = each["category"]
+        size = parseSize(each["summary"])
         link = each["link"]
         author = each["authors"][0]["name"]
         time = each["published"].replace("+0000", "UTC")
@@ -24,6 +33,7 @@ def get_embed(data):
         embed = discord.Embed(title="New Torrent", colour=0x21ff00)
         embed.add_field(name="Title", value=title, inline=False)
         embed.add_field(name="Category", value=summary, inline=False)
+        embed.add_field(name="Size", value=size, inline=False)
         embed.add_field(name="Link", value=link, inline=False)
         embed.add_field(name="Author", value=author, inline=False)
         embed.add_field(name="Published", value=time, inline=False)
