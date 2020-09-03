@@ -13,11 +13,11 @@ except ModuleNotFoundError:
     exit(1)
 
 def parseSize(text):
-    regex = r"Size<\/strong>: \d+\.?\d*"
+    regex = r"Size<\/strong>: \d+\.?\d* (G|M)iB"
     matches = re.finditer(regex, text, re.MULTILINE)
     for matchNum, match in enumerate(matches, start=1):
         size = match.group()
-    size = size.split(": ")[1] + " GiB"
+    size = size.split(": ")[1]
     return size
 
 def get_embed(data):
